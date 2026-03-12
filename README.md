@@ -11,10 +11,3 @@ MyPocketFinance is a modern personal finance app that helps you track expenses, 
 
 The app is built with **Swift** and **SwiftUI** and is designed to feel native on iOS with smooth animations and a minimalist visual style.
 
-## Screenshots
-
-> Note: place the images into `assets/screenshots/` in the repo so GitHub can render them correctly.
-
-![MyPocketFinance screenshots 1](assets/screenshots/app-store-1.png)
-![MyPocketFinance screenshots 2](assets/screenshots/app-store-2.png)
-
