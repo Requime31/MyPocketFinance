@@ -119,7 +119,6 @@ struct DashboardView: View {
     }
 }
 
-// MARK: - Category Filter Chips
 
 private struct CategoryFilterChips: View {
     let selectedCategory: Transaction.Category?
@@ -129,7 +128,6 @@ private struct CategoryFilterChips: View {
     @Environment(\.appTypography) private var typography
     @Environment(\.appSpacing) private var spacing
 
-    // We exclude `.income` here to align with the expense categories grid.
     private let filterCategories: [Transaction.Category] = [
         .food, .transportation, .entertainment, .housing, .utilities, .savings, .healthcare, .other
     ]
@@ -210,7 +208,6 @@ private struct CategoryFilterChips: View {
     }
 }
 
-// MARK: - Expense Chart Section
 
 private struct ExpenseChartSection: View {
     let slices: [DashboardViewModel.ExpenseCategorySlice]
@@ -341,7 +338,6 @@ private struct ExpenseChartSection: View {
     }
 }
 
-// MARK: - Donut Chart Shape
 
 private struct ExpenseDonutChart: View {
     let slices: [DashboardViewModel.ExpenseCategorySlice]
@@ -439,7 +435,6 @@ private struct DonutSliceShape: Shape {
     }
 }
 
-// MARK: - Floating Add Button
 
 private struct FloatingAddButton: View {
     let action: () -> Void

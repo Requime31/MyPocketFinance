@@ -103,7 +103,6 @@ struct AddGoalView: View {
                 .foregroundStyle(colors.textPrimary)
 
             VStack(alignment: .leading, spacing: spacing.m) {
-                // Name
                 VStack(alignment: .leading, spacing: spacing.xs) {
                     Text("Name")
                         .font(typography.caption)
@@ -134,7 +133,6 @@ struct AddGoalView: View {
                             .stroke(colors.subtleBorder.opacity(0.9), lineWidth: 1)
                     )
 
-                    // Suggested names
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: spacing.s) {
                             suggestionChip(title: "Emergency fund") {
@@ -155,7 +153,6 @@ struct AddGoalView: View {
                     }
                 }
 
-                // Target amount
                 VStack(alignment: .leading, spacing: spacing.xs) {
                     Text("Target amount")
                         .font(typography.caption)
@@ -187,7 +184,6 @@ struct AddGoalView: View {
                             .stroke(colors.subtleBorder.opacity(0.9), lineWidth: 1)
                     )
 
-                    // Quick amounts
                     HStack(spacing: spacing.s) {
                         quickAmountChip(amount: 500)
                         quickAmountChip(amount: 1000)
@@ -196,7 +192,6 @@ struct AddGoalView: View {
                     .padding(.top, spacing.s)
                 }
 
-                // Starting amount
                 VStack(alignment: .leading, spacing: spacing.xs) {
                     Text("Starting amount")
                         .font(typography.caption)
@@ -229,7 +224,6 @@ struct AddGoalView: View {
                     )
                 }
 
-                // Currency
                 VStack(alignment: .leading, spacing: spacing.xs) {
                     Text("Currency")
                         .font(typography.caption)

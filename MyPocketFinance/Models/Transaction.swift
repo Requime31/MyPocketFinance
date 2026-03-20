@@ -7,10 +7,6 @@ struct Transaction: Identifiable, Hashable, Codable {
 
         var id: String { rawValue }
 
-        /// FX rates expressed as: 1 unit of this currency equals `rateToUSD` USD.
-        ///
-        /// We follow the example you gave:
-        /// 1 USD = 0.8 EUR  ⇒  1 EUR = 1 / 0.8 = 1.25 USD
         fileprivate var rateToUSD: Decimal {
             switch self {
             case .usd: return 1
@@ -21,7 +17,6 @@ struct Transaction: Identifiable, Hashable, Codable {
         func convert(amount: Decimal, to target: Currency) -> Decimal {
             if self == target { return amount }
 
-            // Convert from `self` to USD, then from USD to target.
             let amountInUSD = amount * rateToUSD
 
             let usdNumber = NSDecimalNumber(decimal: amountInUSD)

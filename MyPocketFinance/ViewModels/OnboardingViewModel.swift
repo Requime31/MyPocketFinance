@@ -21,7 +21,6 @@ final class OnboardingViewModel: ObservableObject {
     init(settingsService: UserSettingsService = UserDefaultsSettingsService()) {
         self.settingsService = settingsService
 
-        // Configure the three onboarding pages
         self.pages = [
             OnboardingPage(
                 title: "Take Control of Your Money",

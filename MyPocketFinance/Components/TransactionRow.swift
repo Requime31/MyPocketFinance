@@ -94,7 +94,6 @@ struct TransactionRowView: View {
     }
 }
 
-// Backwards-compatible wrapper for existing usages
 struct TransactionRow: View {
     let transaction: Transaction
     

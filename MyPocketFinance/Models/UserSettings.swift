@@ -37,7 +37,6 @@ struct UserSettings: Codable, Equatable {
         return Calendar.current.date(from: components) ?? Date()
     }
 
-    // MARK: - Codable
 
     enum CodingKeys: String, CodingKey {
         case hasCompletedOnboarding

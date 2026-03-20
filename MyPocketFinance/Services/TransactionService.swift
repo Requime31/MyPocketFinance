@@ -55,7 +55,6 @@ final class InMemoryTransactionService: TransactionService {
             let data = try encoder.encode(storage)
             defaults.set(data, forKey: storageKey)
         } catch {
-            // Ignore encoding errors for now.
         }
     }
 

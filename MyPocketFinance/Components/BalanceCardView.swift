@@ -154,7 +154,6 @@ struct BalanceCardView: View {
             formatter.currencySymbol = "€"
         }
 
-        // Avoid showing currency code like "USD"/"EUR"
         formatter.currencyCode = ""
 
         return formatter.string(from: number) ?? "\(value)"

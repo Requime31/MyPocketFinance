@@ -64,14 +64,12 @@ struct Goal: Identifiable, Hashable, Codable {
     var contributions: [GoalContribution]
     var createdAt: Date
 
-    /// 0...1 — доля достигнутого прогресса
     var progress: Double {
         guard targetAmount > 0 else { return 0 }
         let ratio = (currentAmount as NSDecimalNumber).doubleValue / (targetAmount as NSDecimalNumber).doubleValue
         return min(max(ratio, 0), 1)
     }
 
-    /// Статус цели на основе прогресса
     var status: GoalStatus {
         if progress >= 1 {
             return .completed

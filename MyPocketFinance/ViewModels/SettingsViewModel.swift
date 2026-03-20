@@ -12,7 +12,6 @@ final class SettingsViewModel: ObservableObject {
         NotificationService.shared.applySettings(self.settings)
     }
 
-    // MARK: - Profile
 
     func updateUsername(_ username: String) {
         settings.username = username
@@ -24,7 +23,6 @@ final class SettingsViewModel: ObservableObject {
         persist()
     }
 
-    // MARK: - Notifications
 
     func toggleWeeklySummary() {
         settings.showWeeklySummary.toggle()
@@ -52,7 +50,6 @@ final class SettingsViewModel: ObservableObject {
         persist()
     }
 
-    // MARK: - Currency
 
     func updateCurrency(code: String) {
         settings.currencyCode = code

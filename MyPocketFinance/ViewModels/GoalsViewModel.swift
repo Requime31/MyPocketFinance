@@ -23,7 +23,6 @@ final class GoalsViewModel: ObservableObject {
         return sortGoals(result, by: sortOption)
     }
 
-    // Aggregate stats
     var totalTargetAmount: Decimal {
         goals.reduce(0) { $0 + $1.targetAmount }
     }
@@ -110,7 +109,6 @@ final class GoalsViewModel: ObservableObject {
     }
 }
 
-// MARK: - Filtering & Sorting
 
 enum GoalStatusFilter: String, CaseIterable, Identifiable {
     case all

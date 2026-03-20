@@ -61,7 +61,6 @@ struct StatisticInsight: Identifiable, Equatable {
 }
 
 final class ReportsViewModel: ObservableObject {
-    // MARK: - Published state
 
     @Published private(set) var summary: PeriodSummary?
     @Published private(set) var categorySpending: [CategorySpending] = []
@@ -78,20 +77,17 @@ final class ReportsViewModel: ObservableObject {
         didSet { recalculate() }
     }
 
-    // MARK: - Dependencies
 
     private let transactionService: TransactionService
     private let goalService: GoalService
     private let settingsService: UserSettingsService
     private let analyticsService: TransactionAnalyticsService
 
-    // MARK: - Storage
 
     private var allTransactions: [Transaction] = []
     private var allGoals: [Goal] = []
     private var displayCurrency: Transaction.Currency = .usd
 
-    // MARK: - Init
 
     init(
         transactionService: TransactionService = InMemoryTransactionService.shared,
@@ -107,7 +103,6 @@ final class ReportsViewModel: ObservableObject {
         load()
     }
 
-    // MARK: - Public API
 
     func load() {
         let settings = settingsService.load()
@@ -120,7 +115,6 @@ final class ReportsViewModel: ObservableObject {
         recalculate()
     }
 
-    // MARK: - Internal recalculation
 
     private func recalculate() {
         let period = selectedFilter.analyticsPeriod
@@ -163,7 +157,6 @@ final class ReportsViewModel: ObservableObject {
         insights = buildInsights()
     }
 
-    // MARK: - Helpers
 
     private func calculateGoalsStatistics(
         goals: [Goal],

@@ -35,7 +35,6 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Sections
 
     private var profileSection: some View {
         sectionContainer(title: "Profile") {
@@ -283,7 +282,6 @@ struct SettingsView: View {
                 title: "Export transactions",
                 subtitle: "CSV export (coming soon)",
                 onTap: {
-                    // Placeholder action; wire up export flow later
                 }
             , accessory: {
                 Image(systemName: "chevron.right")
@@ -368,7 +366,6 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Helpers
 
     private func sectionContainer<Content: View>(
         title: String,

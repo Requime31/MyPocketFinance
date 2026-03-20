@@ -1,6 +1,5 @@
 import Foundation
 
-/// Вспомогательный тип периода для аналитики отчётов.
 enum AnalyticsPeriod: Equatable {
     case week
     case month
@@ -34,12 +33,8 @@ struct CashflowPoint: Identifiable, Equatable {
     }
 }
 
-/// Сервис, отвечающий за все расчёты по транзакциям для отчётов.
-///
-/// Не знает о SwiftUI и вью-моделях, только о моделях и периодах.
 struct TransactionAnalyticsService {
 
-    // MARK: - Public API
 
     func summarizePeriod(
         transactions: [Transaction],
@@ -256,7 +251,6 @@ struct TransactionAnalyticsService {
         }
     }
 
-    // MARK: - Helpers
 
     private func makeDateRange(
         for period: AnalyticsPeriod,

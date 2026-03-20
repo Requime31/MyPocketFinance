@@ -1,9 +1,3 @@
-//
-//  MyPocketFinanceApp.swift
-//  MyPocketFinance
-//
-//  Created by Roman Shevchenko on 12/03/2026.
-//
 
 import SwiftUI
 

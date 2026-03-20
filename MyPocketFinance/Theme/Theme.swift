@@ -1,10 +1,8 @@
 import SwiftUI
 import Combine
 
-// MARK: - Theme Model
 
 struct AppColors {
-    // Core palette
     let primary: Color
     let secondary: Color
     let accent: Color
@@ -15,12 +13,10 @@ struct AppColors {
     let success: Color
     let warning: Color
 
-    // Text
     let textPrimary: Color
     let textSecondary: Color
     let subtleBorder: Color
 
-    // Gradients
     let primaryGradientColors: [Color]
     let accentGradientColors: [Color]
 }
@@ -115,7 +111,6 @@ struct AppCornerRadius {
     )
 }
 
-// MARK: - Theme Manager
 
 enum AppThemeMode: String, CaseIterable {
     case system
@@ -137,7 +132,6 @@ final class ThemeManager: ObservableObject {
         self.mode = storedMode
     }
     
-    // MARK: - Public API
     
     func setMode(_ newMode: AppThemeMode) {
         guard newMode != mode else { return }
@@ -180,8 +174,6 @@ final class ThemeManager: ObservableObject {
         .standard
     }
     
-    /// Color scheme override for the scene.
-    /// Returns `nil` for `.system` so the app follows the system appearance.
     var preferredColorScheme: ColorScheme? {
         switch mode {
         case .light:
@@ -194,7 +186,6 @@ final class ThemeManager: ObservableObject {
     }
 }
 
-// MARK: - Environment Keys
 
 private struct AppColorsKey: EnvironmentKey {
     static let defaultValue: AppColors = .light

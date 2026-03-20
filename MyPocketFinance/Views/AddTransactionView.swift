@@ -193,7 +193,6 @@ struct AddTransactionView: View {
                         let allowed = "0123456789.,"
                         var filtered = newValue.filter { allowed.contains($0) }
 
-                        // Allow only a single decimal separator
                         let separators: [Character] = [".", ","]
                         for separator in separators {
                             let parts = filtered.split(separator: separator, omittingEmptySubsequences: false)

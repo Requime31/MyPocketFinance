@@ -32,7 +32,6 @@ final class UserDefaultsGoalService: PersistentGoalService {
             let data = try encoder.encode(goals)
             defaults.set(data, forKey: storageKey)
         } catch {
-            // Ignore encoding errors for now.
         }
     }
 }

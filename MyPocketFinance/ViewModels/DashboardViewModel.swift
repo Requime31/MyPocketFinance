@@ -83,7 +83,6 @@ final class DashboardViewModel: ObservableObject {
             startDate = yearStart ?? calendar.startOfDay(for: now)
         }
 
-        // For recent transactions we keep a most-recent-first list, optionally filtered by category.
         let recentSource: [Transaction]
         if let category = selectedCategory {
             recentSource = items.filter { $0.category == category }
@@ -148,7 +147,6 @@ final class DashboardViewModel: ObservableObject {
         calendar: Calendar,
         now: Date
     ) {
-        // Only show comparison for monthly view.
         guard selectedPeriod == .month else {
             comparisonText = nil
             return

@@ -44,7 +44,6 @@ struct GoalCardView: View {
         }
         guard let timeProgress else { return .noDeadline }
 
-        // Небольшой буфер 10% вокруг идеального графика
         if goal.progress >= max(timeProgress * 0.9, 0) {
             return .onTrack
         } else {
