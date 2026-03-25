@@ -21,10 +21,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Проект собран в Xcode 26.x; дефолтный на раннере Xcode 16.4 часто даёт exit 65
+      # (неизвестные настройки Swift / несовпадение тулчейна).
+      - name: Select Xcode 26.3
+        run: sudo xcode-select -s /Applications/Xcode_26.3.app/Contents/Developer
+
       - name: Show Xcode version
         run: xcodebuild -version
 
       - name: Build
+        env:
+          DERIVED_DATA: ${{ runner.temp }}/DerivedData
         run: |
           set -o pipefail
           xcodebuild \
@@ -33,8 +40,9 @@ jobs:
             -configuration Debug \
             -destination 'generic/platform=iOS Simulator' \
             -sdk iphonesimulator \
-            DEVELOPMENT_TEAM="" \
-            CODE_SIGN_IDENTITY="" \
+            -derivedDataPath "$DERIVED_DATA" \
+            DEVELOPMENT_TEAM= \
+            CODE_SIGN_IDENTITY=- \
             CODE_SIGNING_REQUIRED=NO \
             build
 
