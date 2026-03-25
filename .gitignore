@@ -14,6 +14,7 @@ xcuserdata/
 DerivedData/
 build/
 *.ipa
+MyPocketFinance-simulator-release.zip
 *.dSYM
 *.dSYM.zip
 
@@ -23,6 +24,10 @@ build/
 
 # Logs and temporary files
 *.log
+
+# Ruby / Bundler (локально)
+vendor/bundle/
+.bundle/
 
 # Fastlane (if used later)
 fastlane/report.xml
