@@ -1,0 +1,47 @@
+# Сборка для симулятора без подписи (подходит для PR и main).
+# Для TestFlight/App Store нужны сертификаты и API-ключ App Store Connect — см. комментарий внизу.
+
+name: iOS CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: ios-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (iOS Simulator)
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project MyPocketFinance.xcodeproj \
+            -scheme MyPocketFinance \
+            -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -sdk iphonesimulator \
+            DEVELOPMENT_TEAM="" \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            build
+
+# --- CD (TestFlight / App Store) ---
+# Варианты:
+# 1) Xcode Cloud в настройках проекта на developer.apple.com / App Store Connect.
+# 2) Fastlane (match + pilot) в отдельном workflow: добавьте в GitHub Secrets
+#    p12, профиль, APP_STORE_CONNECT_KEY_ID, ISSUER_ID, KEY_CONTENT и вызывайте
+#    `fastlane beta` на push тегов или workflow_dispatch.
+# 3) Действие типа mxcl/xcodebuild с экспортом IPA требует импорта сертификатов в keychain раннера.
