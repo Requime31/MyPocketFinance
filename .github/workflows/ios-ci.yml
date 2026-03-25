@@ -14,6 +14,8 @@ jobs:
   build:
     name: Build (iOS Simulator)
     runs-on: macos-15
+    env:
+      BUNDLE_FORCE_RUBY_PLATFORM: "1"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,7 +26,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3"
+          ruby-version: "3.3.10"
           bundler: "2.4.22"
           bundler-cache: true
 
