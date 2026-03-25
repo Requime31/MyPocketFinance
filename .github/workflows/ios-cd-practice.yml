@@ -1,6 +1,3 @@
-# CD-практика через Fastlane: `artifact_simulator_release` → zip в Artifacts.
-# TestFlight: lane `beta` в fastlane/Fastfile (после подписки и секретов).
-
 name: iOS CD (practice — simulator artifact)
 
 on:

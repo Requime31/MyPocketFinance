@@ -1,37 +1,21 @@
-# macOS
 .DS_Store
-
-# Cursor / editor metadata
 .cursor/
-
-# Xcode
 xcuserdata/
 *.xccheckout
 *.xcscmblueprint
 *.xcuserstate
-
-# Derived data and build artifacts
 DerivedData/
 build/
 *.ipa
 MyPocketFinance-simulator-release.zip
 *.dSYM
 *.dSYM.zip
-
-# Swift Package Manager
 .swiftpm/
 .build/
-
-# Logs and temporary files
 *.log
-
-# Ruby / Bundler (локально)
 vendor/bundle/
 .bundle/
-
-# Fastlane (if used later)
 fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/
 fastlane/test_output/
-

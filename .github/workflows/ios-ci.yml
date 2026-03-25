@@ -1,5 +1,3 @@
-# CI через Fastlane: `bundle exec fastlane ci` (см. fastlane/Fastfile).
-
 name: iOS CI
 
 on:

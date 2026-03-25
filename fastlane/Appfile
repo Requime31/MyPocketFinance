@@ -1,6 +1,1 @@
-# Идентификатор приложения (как в Xcode → Signing).
 app_identifier("com.roman.helloswift.MyPocketFinance")
-
-# После оформления Apple Developer Program:
-# apple_id("you@example.com")
-# team_id("XXXXXXXXXX") # 10 символов, Membership в developer.apple.com

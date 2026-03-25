@@ -1,16 +1,13 @@
-# frozen_string_literal: true
-
 default_platform(:ios)
 
 platform :ios do
-  # Fastlane выполняет шаги с cwd = fastlane/, пути к корню репозитория через __dir__.
   repo_root = File.expand_path("..", __dir__)
   project_path = File.join(repo_root, "MyPocketFinance.xcodeproj")
   scheme_name = "MyPocketFinance"
 
   simulator_xcargs = "DEVELOPMENT_TEAM= CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=NO"
 
-  desc "CI: Debug-сборка для iOS Simulator (как в GitHub Actions ci)"
+  desc "Debug simulator build"
   lane :ci do
     build_simulator(
       project: project_path,
@@ -20,7 +17,7 @@ platform :ios do
     )
   end
 
-  desc "Release-сборка симулятора и zip в корне репозитория (для GitHub Artifact)"
+  desc "Release simulator build and zip"
   lane :artifact_simulator_release do
     derived = ENV.fetch("DERIVED_DATA_PATH") { File.join(repo_root, "DerivedData") }
     build_simulator(
@@ -33,40 +30,15 @@ platform :ios do
 
     app = File.join(derived, "Build/Products/Release-iphonesimulator/MyPocketFinance.app")
     output_zip = File.join(repo_root, "MyPocketFinance-simulator-release.zip")
-    UI.user_error!("Нет .app: #{app}") unless File.directory?(app)
+    UI.user_error!("Missing .app: #{app}") unless File.directory?(app)
 
     sh("ditto", "-c", "-k", "--sequesterRsrc", "--keepParent", app, output_zip)
-    UI.success("Готово: #{output_zip}")
+    UI.success(output_zip)
   end
 
-  desc <<~DESC.strip
-    TestFlight: нужны платная подписка Apple Developer, API-ключ App Store Connect и подпись (match или сертификаты на раннере).
-    Секреты: APP_STORE_CONNECT_KEY_ID, APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_KEY.
-    Раскомментируйте код в конце lane после настройки match.
-  DESC
+  desc "TestFlight"
   lane :beta do
-    UI.user_error!(<<~MSG)
-      Lane `beta` отключён до настройки подписи и ключей.
-
-      Когда будет подписка: раскомментируйте шаги в fastlane/Fastfile (api_key, sync_code_signing, build_app, upload_to_testflight).
-
-      Сейчас: `bundle exec fastlane ci` или `bundle exec fastlane artifact_simulator_release`.
-    MSG
-    # api_key = app_store_connect_api_key(
-    #   key_id: ENV.fetch("APP_STORE_CONNECT_KEY_ID"),
-    #   issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID"),
-    #   key_content: ENV.fetch("APP_STORE_CONNECT_KEY"),
-    #   is_key_content_base64: false
-    # )
-    # sync_code_signing(type: "appstore", readonly: is_ci)
-    # build_app(
-    #   project: project_path,
-    #   scheme: scheme_name,
-    #   export_method: "app-store",
-    #   output_directory: "build",
-    #   api_key: api_key
-    # )
-    # upload_to_testflight(api_key: api_key, skip_waiting_for_build_processing: true)
+    UI.user_error!("Configure signing and App Store Connect API key for lane beta.")
   end
 
   private_lane :build_simulator do |options|
