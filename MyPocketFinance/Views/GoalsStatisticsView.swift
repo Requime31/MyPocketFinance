@@ -2,6 +2,7 @@ import SwiftUI
 
 struct GoalsStatisticsView: View {
     let statistics: GoalsOverviewStatistics
+    let currencyCode: String
 
     @Environment(\.appColors) private var colors
     @Environment(\.appTypography) private var typography
@@ -33,7 +34,7 @@ struct GoalsStatisticsView: View {
                 .font(typography.caption)
                 .foregroundStyle(colors.textSecondary)
 
-            Text(value.appCurrencyString(code: Locale.current.currency?.identifier ?? "USD"))
+            Text(value.appCurrencyString(code: currencyCode))
                 .font(typography.subtitle)
                 .foregroundStyle(colors.textPrimary)
         }
@@ -136,6 +137,6 @@ struct GoalsStatisticsView: View {
         statusCounts: [.active: 2, .nearlyAchieved: 1, .completed: 1],
         categoryTotals: [:]
     )
-    return GoalsStatisticsView(statistics: stats)
+    return GoalsStatisticsView(statistics: stats, currencyCode: Transaction.Currency.usd.rawValue)
 }
 

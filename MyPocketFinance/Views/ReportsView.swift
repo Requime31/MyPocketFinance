@@ -32,18 +32,15 @@ struct ReportsView: View {
         .onReceive(NotificationCenter.default.publisher(for: .goalsDidChange)) { _ in
             viewModel.load()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .userSettingsDidChange)) { _ in
+            viewModel.load()
+        }
     }
 
     private var periodSelector: some View {
-        VStack(alignment: .leading, spacing: spacing.s) {
-            Text("Statistics")
-                .font(typography.title)
-                .foregroundStyle(colors.textPrimary)
-
-            HStack(spacing: spacing.s) {
-                ForEach(ReportsTimeFilter.allCases) { filter in
-                    periodChip(for: filter)
-                }
+        HStack(spacing: spacing.s) {
+            ForEach(ReportsTimeFilter.allCases) { filter in
+                periodChip(for: filter)
             }
         }
     }
@@ -177,7 +174,7 @@ struct ReportsView: View {
                     .font(typography.caption)
                     .foregroundStyle(colors.textSecondary)
 
-                Text(value.appCurrencyString(code: Locale.current.currency?.identifier ?? "USD"))
+                Text(value.appCurrencyString(code: viewModel.displayCurrencyCode))
                     .font(typography.subtitle)
                     .foregroundStyle(colors.textPrimary)
                     .lineLimit(1)
@@ -240,7 +237,10 @@ struct ReportsView: View {
                 .font(typography.title)
                 .foregroundStyle(colors.textPrimary)
 
-            CategoryChartView(data: viewModel.categorySpending)
+            CategoryChartView(
+                data: viewModel.categorySpending,
+                currencyCode: viewModel.displayCurrencyCode
+            )
 
             SpendingTrendChartView(
                 data: viewModel.spendingTrend,
@@ -273,15 +273,17 @@ struct ReportsView: View {
                 .foregroundStyle(colors.textPrimary)
 
             if let stats = viewModel.goalsStatistics {
-                GoalsStatisticsView(statistics: stats)
+                GoalsStatisticsView(
+                    statistics: stats,
+                    currencyCode: viewModel.displayCurrencyCode
+                )
                 if viewModel.contributionsThisPeriod > 0 {
-                    let code = Locale.current.currency?.identifier ?? "USD"
                     HStack(spacing: spacing.xs) {
                         Text("Contributions this period:")
                             .font(typography.caption)
                             .foregroundStyle(colors.textSecondary)
 
-                        Text(viewModel.contributionsThisPeriod.appCurrencyString(code: code))
+                        Text(viewModel.contributionsThisPeriod.appCurrencyString(code: viewModel.displayCurrencyCode))
                             .font(typography.caption.weight(.semibold))
                             .foregroundStyle(colors.textPrimary)
                     }

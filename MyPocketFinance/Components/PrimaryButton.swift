@@ -34,7 +34,7 @@ struct PrimaryButton: View {
             ZStack {
                 if isLoading {
                     ProgressView()
-                        .tint(.white)
+                        .tint(colors.onHero)
                         .progressViewStyle(.circular)
                 } else {
                     HStack(spacing: spacing.s) {
@@ -51,7 +51,7 @@ struct PrimaryButton: View {
             }
             .padding(.vertical, spacing.m)
             .padding(.horizontal, spacing.l)
-            .foregroundStyle(Color.white)
+            .foregroundStyle(colors.onHero)
             .background(
                 LinearGradient(
                     colors: colors.primaryGradientColors,
@@ -61,7 +61,7 @@ struct PrimaryButton: View {
             )
             .overlay {
                 RoundedRectangle(cornerRadius: cornerRadius.l, style: .continuous)
-                    .strokeBorder(.white.opacity(0.18), lineWidth: 1)
+                    .strokeBorder(colors.onHero.opacity(0.18), lineWidth: 1)
             }
             .clipShape(
                 RoundedRectangle(

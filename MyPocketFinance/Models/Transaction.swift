@@ -10,7 +10,7 @@ struct Transaction: Identifiable, Hashable, Codable {
         fileprivate var rateToUSD: Decimal {
             switch self {
             case .usd: return 1
-            case .eur: return Decimal(string: "1.25") ?? 1.25
+            case .eur: return ExchangeRateCache.usdPerEur()
             }
         }
 
@@ -25,6 +25,14 @@ struct Transaction: Identifiable, Hashable, Codable {
 
             let converted = usdNumber.dividing(by: targetRate)
             return converted.decimalValue
+        }
+
+        /// Display / settings currency: only USD and EUR are supported in the app.
+        static func appCurrency(fromCode code: String) -> Currency {
+            switch code.uppercased() {
+            case "EUR": return .eur
+            default: return .usd
+            }
         }
     }
 

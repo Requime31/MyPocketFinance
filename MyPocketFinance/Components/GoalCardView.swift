@@ -312,6 +312,7 @@ struct GoalCardView: View {
 }
 
 private struct ConfettiOverlay: View {
+    @Environment(\.appColors) private var colors
     @State private var animate: Bool = false
 
     var body: some View {
@@ -323,7 +324,7 @@ private struct ConfettiOverlay: View {
                     Image(systemName: index.isMultiple(of: 2) ? "sparkles" : "circle.fill")
                         .font(.system(size: index.isMultiple(of: 2) ? 14 : 6, weight: .medium))
                         .foregroundStyle(
-                            index.isMultiple(of: 2) ? Color.yellow : Color.white.opacity(0.9)
+                            index.isMultiple(of: 2) ? Color.yellow : colors.primary.opacity(0.95)
                         )
                         .offset(
                             x: animate ? xOffset : 0,

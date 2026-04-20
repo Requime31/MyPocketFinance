@@ -3,6 +3,7 @@ import Charts
 
 struct CategoryChartView: View {
     let data: [CategorySpending]
+    let currencyCode: String
 
     @Environment(\.appColors) private var colors
     @Environment(\.appTypography) private var typography
@@ -35,7 +36,7 @@ struct CategoryChartView: View {
                     )
                     .cornerRadius(8)
                     .annotation(position: .trailing, alignment: .center) {
-                        Text(item.amountDouble.appCurrencyString(code: "USD"))
+                        Text(item.amountDouble.appCurrencyString(code: currencyCode))
                             .font(typography.caption)
                             .foregroundStyle(colors.textSecondary)
                     }
@@ -63,7 +64,8 @@ struct CategoryChartView: View {
             CategorySpending(category: .food, amount: 120),
             CategorySpending(category: .transportation, amount: 80),
             CategorySpending(category: .entertainment, amount: 60)
-        ]
+        ],
+        currencyCode: "USD"
     )
 }
 

@@ -26,6 +26,15 @@ final class DashboardViewModel: ObservableObject {
             case .year: return "Year"
             }
         }
+
+        /// Label under the total in the spending breakdown donut (matches selected period).
+        var spendingBreakdownSubtitle: String {
+            switch self {
+            case .week: return "This week"
+            case .month: return "This month"
+            case .year: return "This year"
+            }
+        }
     }
 
     @Published private(set) var selectedPeriod: Period = .month
@@ -54,7 +63,9 @@ final class DashboardViewModel: ObservableObject {
         recalculate()
     }
 
-    func updateDisplayCurrency(_ currency: Transaction.Currency) {
+    func syncDisplayCurrency(withSettingsCode code: String) {
+        let currency = Transaction.Currency.appCurrency(fromCode: code)
+        guard displayCurrency != currency else { return }
         displayCurrency = currency
         recalculate()
     }

@@ -22,9 +22,13 @@ struct EditGoalView: View {
         _category = State(initialValue: goal.category)
     }
 
+    private var parsedTarget: Decimal? {
+        AmountFieldParsing.decimal(from: targetAmountText)
+    }
+
     private var isSaveDisabled: Bool {
         name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-        Decimal(string: targetAmountText) == nil
+        parsedTarget.map { $0 <= 0 } ?? true
     }
 
     var body: some View {
@@ -77,7 +81,7 @@ struct EditGoalView: View {
 
     private func save() {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        let targetAmount = Decimal(string: targetAmountText) ?? 0
+        guard let targetAmount = parsedTarget, targetAmount > 0 else { return }
         let date = hasDueDate ? dueDate : nil
 
         onSave(trimmedName, targetAmount, date, category)

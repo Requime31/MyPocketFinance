@@ -2,6 +2,7 @@ import SwiftUI
 
 struct GoalsView: View {
     @StateObject private var viewModel = GoalsViewModel()
+    @EnvironmentObject private var settingsViewModel: SettingsViewModel
     @Environment(\.appTypography) private var typography
     @Environment(\.appColors) private var colors
     @Environment(\.appSpacing) private var spacing
@@ -37,6 +38,12 @@ struct GoalsView: View {
                                 GoalCardView(goal: goal, animationDelay: Double(index) * 0.05)
                             }
                             .buttonStyle(.plain)
+                            .transition(
+                                .asymmetric(
+                                    insertion: .opacity.combined(with: .offset(y: 10)),
+                                    removal: .move(edge: .trailing).combined(with: .opacity)
+                                )
+                            )
                             .swipeActions(edge: .trailing) {
                                 Button {
                                     goalForQuickContribution = goal
@@ -80,7 +87,9 @@ struct GoalsView: View {
             }
         }
         .sheet(isPresented: $isPresentingAddGoal) {
-            AddGoalView { name, targetAmount, initialAmount, dueDate, category, currency in
+            AddGoalView(
+                initialCurrency: Transaction.Currency.appCurrency(fromCode: settingsViewModel.settings.currencyCode)
+            ) { name, targetAmount, initialAmount, dueDate, category, currency in
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
                     viewModel.addGoal(
                         name: name,
@@ -159,8 +168,7 @@ struct GoalsView: View {
     }
 
     private var header: some View {
-        let service = UserDefaultsSettingsService()
-        let currencyCode = service.load().currencyCode
+        let currencyCode = Transaction.Currency.appCurrency(fromCode: settingsViewModel.settings.currencyCode).rawValue
 
         return VStack(alignment: .leading, spacing: spacing.s) {
             Text("Savings goals")
@@ -350,5 +358,6 @@ struct GoalsView: View {
 
 #Preview {
     GoalsView()
+        .environmentObject(SettingsViewModel())
 }
 

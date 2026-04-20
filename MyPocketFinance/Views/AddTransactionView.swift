@@ -84,24 +84,22 @@ struct AddTransactionView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                colors.background
-                    .ignoresSafeArea()
-
-                ScrollView {
-                    VStack(spacing: spacing.l) {
-                        typeSection
-                        amountSection
-                        notesSection
-                        categorySection
-                        dateSection
-                    }
-                    .padding(.horizontal, spacing.l)
-                    .padding(.top, spacing.xl)
-                    .padding(.bottom, 100)
+            ScrollView {
+                VStack(spacing: spacing.l) {
+                    typeSection
+                    amountSection
+                    notesSection
+                    categorySection
+                    dateSection
                 }
-
-                saveBar
+                .padding(.horizontal, spacing.l)
+                .padding(.top, spacing.xl)
+                .padding(.bottom, spacing.xl)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .background(colors.background.ignoresSafeArea())
+            .safeAreaInset(edge: .bottom) {
+                bottomBar
             }
             .navigationTitle(existingTransaction == nil ? "Add Transaction" : "Edit Transaction")
             .navigationBarTitleDisplayMode(.inline)
@@ -240,9 +238,9 @@ struct AddTransactionView: View {
                 .padding(.vertical, spacing.xs)
                 .background(
                     RoundedRectangle(cornerRadius: cornerRadius.s, style: .continuous)
-                        .fill(isSelected ? colors.accent : colors.card.opacity(0.0001))
+                        .fill(isSelected ? colors.accent : colors.controlInactiveFill)
                 )
-                .foregroundStyle(isSelected ? Color.white : colors.textPrimary)
+                .foregroundStyle(isSelected ? colors.onAccent : colors.textPrimary)
         }
         .buttonStyle(.plain)
     }
@@ -268,35 +266,40 @@ struct AddTransactionView: View {
                 .font(typography.caption)
                 .foregroundStyle(colors.textSecondary)
 
-            HStack(spacing: spacing.s) {
-                ZStack {
-                    Circle()
-                        .fill(colors.accent.opacity(0.18))
-                        .frame(width: 28, height: 28)
+            VStack(alignment: .center, spacing: spacing.m) {
+                HStack(spacing: spacing.s) {
+                    Spacer(minLength: 0)
 
-                    Image(systemName: "calendar")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundStyle(colors.accent)
+                    ZStack {
+                        Circle()
+                            .fill(colors.accent.opacity(0.18))
+                            .frame(width: 28, height: 28)
+
+                        Image(systemName: "calendar")
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundStyle(colors.accent)
+                    }
+
+                    DatePicker(
+                        "",
+                        selection: $date,
+                        displayedComponents: .date
+                    )
+                    .labelsHidden()
+                    .datePickerStyle(.compact)
+
+                    Spacer(minLength: 0)
                 }
-
-                DatePicker(
-                    "",
-                    selection: $date,
-                    displayedComponents: .date
-                )
-                .labelsHidden()
-                .datePickerStyle(.compact)
             }
             .padding(.horizontal, spacing.m)
-            .padding(.vertical, spacing.s)
+            .padding(.vertical, spacing.m)
             .background(
                 RoundedRectangle(cornerRadius: cornerRadius.l, style: .continuous)
                     .fill(colors.card)
             )
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
-
+    
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: spacing.s) {
             Text("Notes")
@@ -327,9 +330,13 @@ struct AddTransactionView: View {
         }
     }
 
-    private var saveBar: some View {
-        VStack {
-            Spacer()
+    private var bottomBar: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(colors.subtleBorder.opacity(0.55))
+                .frame(height: 1)
+                .frame(maxWidth: .infinity)
+
             VStack(spacing: spacing.s) {
                 if let error = errorMessage {
                     Text(error)
@@ -348,16 +355,13 @@ struct AddTransactionView: View {
             .padding(.horizontal, spacing.l)
             .padding(.top, spacing.m)
             .padding(.bottom, spacing.l)
-            .background(
-                Rectangle()
-                    .fill(
-                        colors.background
-                            .opacity(0.98)
-                    )
-                    .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: -4)
-            )
         }
-        .ignoresSafeArea(edges: .bottom)
+        .frame(maxWidth: .infinity)
+        .background {
+            colors.background
+                .ignoresSafeArea(edges: .bottom)
+                .shadow(color: .black.opacity(0.12), radius: 10, x: 0, y: -6)
+        }
     }
 
     private func save() {

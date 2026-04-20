@@ -1,10 +1,16 @@
 import Foundation
+import os.log
 
 protocol PersistentGoalService: GoalService {
     func saveGoals(_ goals: [Goal])
 }
 
 final class UserDefaultsGoalService: PersistentGoalService {
+    private static let log = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "MyPocketFinance",
+        category: "Goals"
+    )
+
     private let storageKey = "goals_storage_key"
     private let defaults: UserDefaults
 
@@ -22,6 +28,7 @@ final class UserDefaultsGoalService: PersistentGoalService {
             let goals = try decoder.decode([Goal].self, from: data)
             return goals
         } catch {
+            Self.log.error("Failed to decode goals: \(error.localizedDescription, privacy: .public)")
             return []
         }
     }
@@ -32,6 +39,7 @@ final class UserDefaultsGoalService: PersistentGoalService {
             let data = try encoder.encode(goals)
             defaults.set(data, forKey: storageKey)
         } catch {
+            Self.log.error("Failed to encode goals: \(error.localizedDescription, privacy: .public)")
         }
     }
 }

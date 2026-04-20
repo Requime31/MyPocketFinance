@@ -106,7 +106,7 @@ final class ReportsViewModel: ObservableObject {
 
     func load() {
         let settings = settingsService.load()
-        displayCurrency = Transaction.Currency(code: settings.currencyCode) ?? .usd
+        displayCurrency = Transaction.Currency.appCurrency(fromCode: settings.currencyCode)
         displayCurrencyCode = displayCurrency.rawValue.uppercased()
 
         allTransactions = transactionService.fetchTransactions()
@@ -237,7 +237,7 @@ final class ReportsViewModel: ObservableObject {
             let expenses = NSDecimalNumber(decimal: summary.totalExpenses).doubleValue
 
             if income > 0 || expenses > 0 {
-                let code = Transaction.Currency(code: settingsService.load().currencyCode)?.rawValue ?? "USD"
+                let code = Transaction.Currency.appCurrency(fromCode: settingsService.load().currencyCode).rawValue
                 let formatter = NumberFormatter()
                 formatter.numberStyle = .currency
                 formatter.currencyCode = code
@@ -271,7 +271,7 @@ final class ReportsViewModel: ObservableObject {
             let amount = NSDecimalNumber(decimal: top.amount).doubleValue
             let formatter = NumberFormatter()
             formatter.numberStyle = .currency
-            formatter.currencyCode = Transaction.Currency(code: settingsService.load().currencyCode)?.rawValue ?? "USD"
+            formatter.currencyCode = Transaction.Currency.appCurrency(fromCode: settingsService.load().currencyCode).rawValue
             let amountText = formatter.string(from: NSNumber(value: amount)) ?? "\(amount)"
 
             result.append(
@@ -311,17 +311,3 @@ final class ReportsViewModel: ObservableObject {
         return (startOfDay, now)
     }
 }
-
-private extension Transaction.Currency {
-    init?(code: String) {
-        switch code.uppercased() {
-        case "USD":
-            self = .usd
-        case "EUR":
-            self = .eur
-        default:
-            return nil
-        }
-    }
-}
-

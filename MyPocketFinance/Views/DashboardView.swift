@@ -2,7 +2,8 @@ import SwiftUI
 
 struct DashboardView: View {
     let onAddTransaction: () -> Void
-    
+
+    @EnvironmentObject private var settingsViewModel: SettingsViewModel
     @StateObject private var viewModel = DashboardViewModel()
     @Environment(\.appColors) private var colors
     @Environment(\.appTypography) private var typography
@@ -24,9 +25,7 @@ struct DashboardView: View {
                         totalBalance: viewModel.totalBalance,
                         income: viewModel.totalIncome,
                         expenses: viewModel.totalExpenses,
-                        currencyCode: viewModel.displayCurrency.rawValue,
-                        currency: viewModel.displayCurrency,
-                        onCurrencyChange: viewModel.updateDisplayCurrency
+                        currency: viewModel.displayCurrency
                     )
                     .transition(.opacity.combined(with: .scale))
                     .animation(.spring(response: 0.7, dampingFraction: 0.85), value: viewModel.totalBalance)
@@ -87,12 +86,16 @@ struct DashboardView: View {
                 .padding(spacing.l)
         }
         .onAppear {
+            viewModel.syncDisplayCurrency(withSettingsCode: settingsViewModel.settings.currencyCode)
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 withAnimation(.spring(response: 0.8, dampingFraction: 0.9)) {
                     animateChart = true
                 }
             }
             viewModel.load()
+        }
+        .onChange(of: settingsViewModel.settings.currencyCode) { _, code in
+            viewModel.syncDisplayCurrency(withSettingsCode: code)
         }
         .onReceive(NotificationCenter.default.publisher(for: .transactionsDidChange)) { _ in
             viewModel.load()
@@ -172,6 +175,7 @@ private struct CategoryFilterChips: View {
                     .font(typography.caption.weight(.medium))
                     .lineLimit(1)
             }
+            .foregroundStyle(isSelected ? colors.accent : colors.textPrimary)
             .padding(.horizontal, spacing.s)
             .padding(.vertical, 6)
             .background(
@@ -240,6 +244,7 @@ private struct ExpenseChartSection: View {
                     }
                 }
                 .pickerStyle(.segmented)
+                .tint(colors.accent)
                 .frame(maxWidth: 220)
             }
             
@@ -252,7 +257,7 @@ private struct ExpenseChartSection: View {
                         Text(formattedAmount(totalExpenses))
                             .font(typography.subtitle)
                             .foregroundStyle(colors.textPrimary)
-                        Text("This month")
+                        Text(selectedPeriod.spendingBreakdownSubtitle)
                             .font(typography.caption)
                             .foregroundStyle(colors.textSecondary)
                     }
@@ -467,7 +472,7 @@ private struct FloatingAddButton: View {
                 
                 Image(systemName: "plus")
                     .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundStyle(Color.white)
+                    .foregroundStyle(colors.onHero)
             }
             .frame(width: 60, height: 60)
             .scaleEffect(isPressed ? 0.92 : 1.0)

@@ -20,9 +20,9 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: spacing.l) {
                     profileSection
                     themeSection
+                    currencySection
                     notificationsSection
                     faqSection
-                    exportSection
                     languageSection
                     aboutSection
                 }
@@ -115,6 +115,31 @@ struct SettingsView: View {
         }
     }
 
+    private var currencySection: some View {
+        sectionContainer(title: "Currency") {
+            SettingsRowView(
+                iconName: "dollarsign.circle.fill",
+                iconColor: colors.success,
+                title: "Primary currency",
+                subtitle: "Amounts on Dashboard and Statistics use this currency"
+            , accessory: {
+                Picker(
+                    "",
+                    selection: Binding(
+                        get: { settingsViewModel.settings.currencyCode },
+                        set: { settingsViewModel.updateCurrency(code: $0) }
+                    )
+                ) {
+                    Text("USD").tag("USD")
+                    Text("EUR").tag("EUR")
+                }
+                .pickerStyle(.segmented)
+                .tint(colors.accent)
+                .frame(maxWidth: 220)
+            })
+        }
+    }
+
     private var themeSection: some View {
         sectionContainer(title: "Theme") {
             SettingsRowView(
@@ -148,6 +173,7 @@ struct SettingsView: View {
                         .accessibilityLabel("Dark")
                 }
                 .pickerStyle(.segmented)
+                .tint(colors.accent)
                 .frame(maxWidth: 220)
             })
         }
@@ -274,23 +300,6 @@ struct SettingsView: View {
         }
     }
 
-    private var exportSection: some View {
-        sectionContainer(title: "Export data") {
-            SettingsRowView(
-                iconName: "arrow.down.doc.fill",
-                iconColor: colors.primary,
-                title: "Export transactions",
-                subtitle: "CSV export (coming soon)",
-                onTap: {
-                }
-            , accessory: {
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(colors.textSecondary)
-            })
-        }
-    }
-
     private var aboutSection: some View {
         sectionContainer(title: "About") {
             SettingsRowView(
@@ -328,41 +337,13 @@ struct SettingsView: View {
                 title: "Privacy Policy",
                 subtitle: "How we handle your data",
                 onTap: {
-                    openURL("https://example.com/privacy")
+                    openURL("https://Requime31.github.io/privacy-policy/")
                 }
             , accessory: {
                 Image(systemName: "arrow.up.right")
                     .font(.caption)
                     .foregroundStyle(colors.textSecondary)
             })
-
-            SettingsRowView(
-                iconName: "doc.text.fill",
-                iconColor: colors.secondary,
-                title: "Terms of Use",
-                subtitle: "Important information about using the app",
-                onTap: {
-                    openURL("https://example.com/terms")
-                }
-            , accessory: {
-                Image(systemName: "arrow.up.right")
-                    .font(.caption)
-                    .foregroundStyle(colors.textSecondary)
-            })
-
-            Divider()
-                .padding(.leading, spacing.xl)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Created for educational purposes.")
-                    .font(typography.caption)
-                    .foregroundStyle(colors.textSecondary)
-                Text("Not intended for real financial advice.")
-                    .font(typography.caption)
-                    .foregroundStyle(colors.textSecondary.opacity(0.9))
-            }
-            .padding(.horizontal, spacing.m)
-            .padding(.vertical, spacing.m)
         }
     }
 

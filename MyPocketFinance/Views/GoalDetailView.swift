@@ -8,12 +8,16 @@ struct GoalDetailView: View {
     @Environment(\.appColors) private var colors
     @Environment(\.appTypography) private var typography
     @Environment(\.appSpacing) private var spacing
+    @Environment(\.appCornerRadius) private var cornerRadius
 
     @State private var showQuickContribution: Bool = false
+    @State private var progressBarFill: Double = 0
     @State private var quickAmountText: String = ""
     @State private var quickNoteText: String = ""
     @State private var quickError: String?
     @State private var highlightMotivation: Bool = false
+    /// After delete the goal is gone from the model before the sheet closes; avoid flashing "Goal not found".
+    @State private var isDeletingGoal: Bool = false
 
     private var goal: Goal? {
         viewModel.goal(withId: goalID)
@@ -28,12 +32,17 @@ struct GoalDetailView: View {
                         progressSection(for: goal)
                         planSection(for: goal)
                         contributionsSection(for: goal)
+                        deleteSection(for: goal)
                     }
                     .padding(spacing.l)
                 }
                 .background(colors.background.ignoresSafeArea())
                 .navigationTitle(goal.name)
                 .navigationBarTitleDisplayMode(.inline)
+            } else if isDeletingGoal {
+                Color.clear
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(colors.background)
             } else {
                 ContentUnavailableView(
                     "Goal not found",
@@ -110,13 +119,75 @@ struct GoalDetailView: View {
         VStack(alignment: .leading, spacing: spacing.m) {
             Text("Progress")
                 .font(typography.subtitle)
+                .foregroundStyle(colors.textPrimary)
 
-            GoalCardView(goal: goal, showsOverviewLabel: true)
-                .onTapGesture {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
-                        highlightMotivation.toggle()
+            VStack(alignment: .leading, spacing: spacing.m) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Target")
+                        .font(typography.caption)
+                        .foregroundStyle(colors.textSecondary)
+
+                    Spacer()
+
+                    Text(goal.targetAmount.appCurrencyString(code: goal.currency.rawValue))
+                        .font(typography.title.weight(.semibold))
+                        .foregroundStyle(colors.textPrimary)
+                        .monospacedDigit()
+                }
+
+                GeometryReader { geometry in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: cornerRadius.m, style: .continuous)
+                            .fill(colors.background.opacity(0.85))
+
+                        RoundedRectangle(cornerRadius: cornerRadius.m, style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: progressGradientColors(for: goal),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .frame(width: geometry.size.width * progressBarFill)
                     }
                 }
+                .frame(height: 10)
+
+                HStack(alignment: .firstTextBaseline) {
+                    Text(goal.currentAmount.appCurrencyString(code: goal.currency.rawValue))
+                        .font(typography.body.weight(.medium))
+                        .foregroundStyle(colors.textPrimary)
+                        .monospacedDigit()
+
+                    Spacer()
+
+                    Text(progressPercentLabel(for: goal))
+                        .font(typography.caption.weight(.semibold))
+                        .foregroundStyle(colors.textSecondary)
+                        .monospacedDigit()
+                }
+            }
+            .onAppear {
+                progressBarFill = 0
+                withAnimation(.spring(response: 0.65, dampingFraction: 0.88)) {
+                    progressBarFill = goal.progress
+                }
+            }
+            .onChange(of: goal.currentAmount) { _, _ in
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.9)) {
+                    progressBarFill = goal.progress
+                }
+            }
+            .onChange(of: goal.targetAmount) { _, _ in
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.9)) {
+                    progressBarFill = goal.progress
+                }
+            }
+            .onTapGesture {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
+                    highlightMotivation.toggle()
+                }
+            }
 
             VStack(alignment: .leading, spacing: spacing.s) {
                 Button {
@@ -204,7 +275,7 @@ struct GoalDetailView: View {
                                         Capsule(style: .continuous)
                                             .fill(colors.accent)
                                     )
-                                    .foregroundStyle(Color.white)
+                                    .foregroundStyle(colors.onAccent)
                             }
                             .buttonStyle(.plain)
                         }
@@ -336,6 +407,33 @@ struct GoalDetailView: View {
         )
     }
 
+    private func deleteSection(for goal: Goal) -> some View {
+        Button(role: .destructive) {
+            isDeletingGoal = true
+            DispatchQueue.main.async {
+                viewModel.delete(goal)
+                withAnimation(.snappy(duration: 0.32, extraBounce: 0.04)) {
+                    dismiss()
+                }
+            }
+        } label: {
+            HStack {
+                Spacer()
+                Text("Delete Goal")
+                    .font(typography.body.weight(.semibold))
+                Spacer()
+            }
+            .padding(.vertical, spacing.m)
+            .background(
+                RoundedRectangle(cornerRadius: cornerRadius.l, style: .continuous)
+                    .fill(Color.red.opacity(0.08))
+            )
+        }
+        .buttonStyle(.plain)
+        .disabled(isDeletingGoal)
+        .padding(.top, spacing.l)
+    }
+
     private func statusText(for status: GoalStatus) -> String {
         switch status {
         case .active:
@@ -380,6 +478,37 @@ struct GoalDetailView: View {
         withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) {
             showQuickContribution = false
         }
+    }
+
+    private func progressGradientColors(for goal: Goal) -> [Color] {
+        let p = goal.progress
+        switch p {
+        case ..<0.34:
+            return [
+                colors.secondary.opacity(0.8),
+                colors.secondary
+            ]
+        case ..<0.67:
+            return colors.primaryGradientColors
+        case ..<1.0:
+            return [
+                colors.success,
+                colors.success.opacity(0.9)
+            ]
+        default:
+            return [
+                colors.success,
+                colors.success.opacity(0.9)
+            ]
+        }
+    }
+
+    private func progressPercentLabel(for goal: Goal) -> String {
+        guard goal.targetAmount > 0 else { return "0%" }
+        let current = (goal.currentAmount as NSDecimalNumber).doubleValue
+        let target = (goal.targetAmount as NSDecimalNumber).doubleValue
+        let percent = (current / target) * 100
+        return "\(Int(round(percent)))%"
     }
 
     private func categoryIconName(for category: GoalCategory) -> String {

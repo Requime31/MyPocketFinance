@@ -41,11 +41,11 @@ struct LoadingView: View {
                     VStack(spacing: 6) {
                         Image(systemName: "creditcard.and.123")
                             .font(.system(size: 44, weight: .semibold, design: .rounded))
-                            .foregroundStyle(Color.white)
+                            .foregroundStyle(colors.onHero)
 
                         Text("MyPocket")
                             .font(.system(size: 18, weight: .semibold, design: .rounded))
-                            .foregroundStyle(Color.white.opacity(0.9))
+                            .foregroundStyle(colors.onHeroSecondary)
                     }
                 }
 

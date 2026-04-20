@@ -31,7 +31,6 @@ struct OnboardingView: View {
                     }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
-                .animation(.spring(response: 0.45, dampingFraction: 0.9), value: viewModel.currentPageIndex)
 
                 footer
                     .padding(.horizontal, spacing.l)
@@ -45,16 +44,19 @@ struct OnboardingView: View {
         HStack {
             Spacer()
 
-            if !viewModel.isLastPage {
-                Button("Skip") {
-                    withAnimation(.spring(response: 0.5, dampingFraction: 0.9)) {
-                        viewModel.skip()
-                    }
-                    onCompleted()
+            // Keep Skip in the layout on the last page so header height does not jump
+            // (otherwise GeometryReader on the page reflows mid-transition and breaks the slide animation).
+            Button("Skip") {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.9)) {
+                    viewModel.skip()
                 }
-                .font(typography.body)
-                .foregroundStyle(colors.textSecondary)
+                onCompleted()
             }
+            .font(typography.body)
+            .foregroundStyle(colors.textSecondary)
+            .opacity(viewModel.isLastPage ? 0 : 1)
+            .allowsHitTesting(!viewModel.isLastPage)
+            .accessibilityHidden(viewModel.isLastPage)
         }
         .padding(.top, spacing.xl)
         .padding(.horizontal, spacing.l)

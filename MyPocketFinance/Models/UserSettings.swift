@@ -14,13 +14,25 @@ struct UserSettings: Codable, Equatable {
     static let `default` = UserSettings(
         hasCompletedOnboarding: false,
         username: UserSettings.defaultUsername,
-        currencyCode: Locale.current.currency?.identifier ?? "USD",
+        currencyCode: UserSettings.defaultCurrencyCodeForLocale(),
         showWeeklySummary: true,
         enableNotifications: true,
         notificationTime: UserSettings.defaultNotificationTime,
         profileImageData: nil,
         preferredTheme: "system"
     )
+
+    private static func defaultCurrencyCodeForLocale() -> String {
+        let id = Locale.current.currency?.identifier.uppercased() ?? "USD"
+        return id == "EUR" ? "EUR" : "USD"
+    }
+
+    private static func normalizedAppCurrencyCode(_ code: String) -> String {
+        switch code.uppercased() {
+        case "EUR": return "EUR"
+        default: return "USD"
+        }
+    }
 
     private static var defaultUsername: String {
         if let name = PersonNameComponentsFormatter().personNameComponents(from: UIDevice.current.name)?.givenName,
@@ -74,8 +86,8 @@ struct UserSettings: Codable, Equatable {
 
         hasCompletedOnboarding = try container.decodeIfPresent(Bool.self, forKey: .hasCompletedOnboarding) ?? false
         username = try container.decodeIfPresent(String.self, forKey: .username) ?? UserSettings.defaultUsername
-        currencyCode = try container.decodeIfPresent(String.self, forKey: .currencyCode)
-            ?? (Locale.current.currency?.identifier ?? "USD")
+        let storedCurrency = try container.decodeIfPresent(String.self, forKey: .currencyCode)
+        currencyCode = Self.normalizedAppCurrencyCode(storedCurrency ?? Self.defaultCurrencyCodeForLocale())
         showWeeklySummary = try container.decodeIfPresent(Bool.self, forKey: .showWeeklySummary) ?? true
         enableNotifications = try container.decodeIfPresent(Bool.self, forKey: .enableNotifications) ?? true
         notificationTime = try container.decodeIfPresent(Date.self, forKey: .notificationTime)

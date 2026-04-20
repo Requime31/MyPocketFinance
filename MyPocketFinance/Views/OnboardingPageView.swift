@@ -33,14 +33,14 @@ struct OnboardingPageView: View {
                         .shadow(color: colors.primary.opacity(0.25), radius: 24, x: 0, y: 18)
                         .overlay(
                             Circle()
-                                .strokeBorder(Color.white.opacity(0.18), lineWidth: 1.5)
+                                .strokeBorder(colors.onHero.opacity(0.18), lineWidth: 1.5)
                                 .blur(radius: 0.5)
                                 .padding(24)
                         )
 
                     Image(systemName: page.systemImageName)
                         .font(.system(size: size.width * 0.24, weight: .semibold, design: .rounded))
-                        .foregroundStyle(Color.white)
+                        .foregroundStyle(colors.onHero)
                         .shadow(color: Color.black.opacity(0.18), radius: 18, x: 0, y: 10)
                 }
                 .scaleEffect(illustrationScale)
@@ -77,9 +77,13 @@ struct OnboardingPageView: View {
     }
 
     private func animateIn() {
-        illustrationScale = 0.9
-        illustrationOffset = 40
-        textOpacity = 0.0
+        var reset = SwiftUI.Transaction()
+        reset.disablesAnimations = true
+        withTransaction(reset) {
+            illustrationScale = 0.9
+            illustrationOffset = 40
+            textOpacity = 0.0
+        }
 
         withAnimation(.spring(response: 0.7, dampingFraction: 0.85, blendDuration: 0.2)) {
             illustrationScale = 1.0

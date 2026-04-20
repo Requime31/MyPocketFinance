@@ -70,9 +70,9 @@ final class NotificationService {
 
     private static func randomReminderBody() -> String {
         let variants = [
-            "Пора заглянуть в MyPocketFinance и записать сегодняшние траты и доходы.",
-            "Не забудьте обновить свои расходы и доходы за день.",
-            "Проверьте свои финансы: добавьте новые операции по расходам и доходам."
+            "Time to open MyPocketFinance and log today's spending and income.",
+            "Don't forget to update your expenses and income for the day.",
+            "Check your finances: add new expense and income entries."
         ]
 
         return variants.randomElement() ?? variants[0]

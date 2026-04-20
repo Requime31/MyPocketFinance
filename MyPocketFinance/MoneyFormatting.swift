@@ -1,5 +1,14 @@
 import Foundation
 
+enum AmountFieldParsing {
+    /// Parses a user-entered amount (comma or dot as decimal separator).
+    static func decimal(from text: String) -> Decimal? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+        return Decimal(string: trimmed.replacingOccurrences(of: ",", with: "."))
+    }
+}
+
 enum AppCurrencyFormatter {
     private static func makeFormatter(currencyCode: String) -> NumberFormatter {
         let formatter = NumberFormatter()

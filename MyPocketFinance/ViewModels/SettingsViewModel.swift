@@ -8,7 +8,13 @@ final class SettingsViewModel: ObservableObject {
 
     init(service: UserSettingsService = UserDefaultsSettingsService()) {
         self.service = service
-        self.settings = service.load()
+        var loaded = service.load()
+        let normalized = Self.canonicalCurrencyCode(loaded.currencyCode)
+        if normalized != loaded.currencyCode {
+            loaded.currencyCode = normalized
+            service.save(loaded)
+        }
+        self.settings = loaded
         NotificationService.shared.applySettings(self.settings)
     }
 
@@ -52,13 +58,21 @@ final class SettingsViewModel: ObservableObject {
 
 
     func updateCurrency(code: String) {
-        settings.currencyCode = code
+        settings.currencyCode = Self.canonicalCurrencyCode(code)
         persist()
     }
 
     private func persist() {
         service.save(settings)
         NotificationService.shared.applySettings(settings)
+        NotificationCenter.default.post(name: .userSettingsDidChange, object: nil)
+    }
+
+    private static func canonicalCurrencyCode(_ code: String) -> String {
+        switch code.uppercased() {
+        case "EUR": return "EUR"
+        default: return "USD"
+        }
     }
 }
 

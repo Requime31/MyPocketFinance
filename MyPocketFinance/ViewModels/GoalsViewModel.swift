@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import SwiftUI
 
 final class GoalsViewModel: ObservableObject {
     @Published private(set) var goals: [Goal] = []
@@ -35,10 +36,9 @@ final class GoalsViewModel: ObservableObject {
         goals = goalService.fetchGoals()
     }
 
-    @MainActor
     func refresh() async {
         await MainActor.run {
-            objectWillChange.send()
+            load()
         }
     }
 
@@ -65,7 +65,9 @@ final class GoalsViewModel: ObservableObject {
     }
 
     func delete(_ goal: Goal) {
-        goals.removeAll { $0.id == goal.id }
+        withAnimation(.bouncy(duration: 0.42, extraBounce: 0.22)) {
+            goals.removeAll { $0.id == goal.id }
+        }
         goalService.saveGoals(goals)
         NotificationCenter.default.post(name: .goalsDidChange, object: nil)
     }

@@ -3,6 +3,14 @@ import SwiftUI
 struct AddGoalView: View {
     var onSave: (_ name: String, _ targetAmount: Decimal, _ initialAmount: Decimal, _ dueDate: Date?, _ category: GoalCategory, _ currency: Transaction.Currency) -> Void
 
+    init(
+        initialCurrency: Transaction.Currency = .usd,
+        onSave: @escaping (_ name: String, _ targetAmount: Decimal, _ initialAmount: Decimal, _ dueDate: Date?, _ category: GoalCategory, _ currency: Transaction.Currency) -> Void
+    ) {
+        self.onSave = onSave
+        _selectedCurrency = State(initialValue: initialCurrency)
+    }
+
     @Environment(\.dismiss) private var dismiss
     @Environment(\.appColors) private var colors
     @Environment(\.appTypography) private var typography
@@ -15,42 +23,47 @@ struct AddGoalView: View {
     @State private var hasDueDate: Bool = false
     @State private var dueDate: Date = Calendar.current.date(byAdding: .month, value: 6, to: .now) ?? .now
     @State private var category: GoalCategory = .other
-    @State private var currency: Transaction.Currency = {
-        let service = UserDefaultsSettingsService()
-        let code = service.load().currencyCode
-        let currency = Transaction.Currency(rawValue: code) ?? .usd
-        return currency
-    }()
+    @State private var selectedCurrency: Transaction.Currency
 
-    private var isSaveDisabled: Bool {
-        name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ||
-        Decimal(string: targetAmountText) == nil
+    private var parsedTargetAmount: Decimal? {
+        AmountFieldParsing.decimal(from: targetAmountText)
+    }
+
+    private var parsedInitialAmount: Decimal {
+        AmountFieldParsing.decimal(from: initialAmountText) ?? 0
+    }
+
+    private var canSave: Bool {
+        let nameOk = !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        guard nameOk, let target = parsedTargetAmount, target > 0 else { return false }
+        return parsedInitialAmount >= 0
     }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: spacing.l) {
-                    heroCard
-                    detailsCard
-                    categoryCard
-                    timelineCard
+                    nameSection
+                    targetAmountSection
+                    startingAmountSection
+                    categorySection
+                    timelineSection
                 }
                 .padding(.horizontal, spacing.l)
-                .padding(.top, spacing.l)
+                .padding(.top, spacing.xl)
                 .padding(.bottom, spacing.xl)
             }
+            .scrollDismissesKeyboard(.interactively)
             .background(colors.background.ignoresSafeArea())
             .safeAreaInset(edge: .bottom) {
                 bottomBar
             }
-            .navigationTitle("New Goal")
+            .navigationTitle("Add Goal")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
+                    Button("Cancel") { dismiss() }
+                        .foregroundStyle(colors.textSecondary)
                 }
             }
         }
@@ -58,197 +71,148 @@ struct AddGoalView: View {
 
     private func save() {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        let targetAmount = Decimal(string: targetAmountText) ?? 0
-        let initialAmount = Decimal(string: initialAmountText) ?? 0
+        guard let targetAmount = parsedTargetAmount, targetAmount > 0 else { return }
+        let initialAmount = max(0, parsedInitialAmount)
         let date = hasDueDate ? dueDate : nil
 
-        onSave(trimmedName, targetAmount, initialAmount, date, category, currency)
+        onSave(trimmedName, targetAmount, initialAmount, date, category, selectedCurrency)
         dismiss()
     }
 
-    private var heroCard: some View {
-        VStack(alignment: .leading, spacing: spacing.m) {
-            Text("Create a new goal")
-                .font(typography.title)
-                .foregroundStyle(colors.textPrimary)
+    // MARK: - Sections (aligned with AddTransactionView)
 
-            Text("Visualize your savings and stay motivated with a clear target and timeline.")
-                .font(typography.body)
+    private var nameSection: some View {
+        VStack(alignment: .leading, spacing: spacing.s) {
+            Text("Goal name")
+                .font(typography.caption)
                 .foregroundStyle(colors.textSecondary)
-        }
-        .padding(spacing.m)
-        .background(
-            LinearGradient(
-                colors: [
-                    colors.card,
-                    colors.card.opacity(0.95)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
+
+            HStack(spacing: spacing.s) {
+                ZStack {
+                    Circle()
+                        .fill(colors.accent.opacity(0.18))
+                        .frame(width: 28, height: 28)
+
+                    Image(systemName: "target")
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundStyle(colors.accent)
+                }
+
+                TextField("e.g. Vacation in Italy", text: $name)
+                    .font(typography.body)
+            }
+            .padding(.horizontal, spacing.m)
+            .padding(.vertical, spacing.m)
+            .background(
+                RoundedRectangle(cornerRadius: cornerRadius.l, style: .continuous)
+                    .fill(colors.card)
             )
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: cornerRadius.l, style: .continuous)
-                .stroke(colors.subtleBorder, lineWidth: 1)
-        )
-        .clipShape(
-            RoundedRectangle(cornerRadius: cornerRadius.l, style: .continuous)
-        )
-    }
 
-    private var detailsCard: some View {
-        VStack(alignment: .leading, spacing: spacing.m) {
-            Text("Goal details")
-                .font(typography.subtitle)
-                .foregroundStyle(colors.textPrimary)
-
-            VStack(alignment: .leading, spacing: spacing.m) {
-                VStack(alignment: .leading, spacing: spacing.xs) {
-                    Text("Name")
-                        .font(typography.caption)
-                        .foregroundStyle(colors.textSecondary)
-
-                    HStack {
-                        Image(systemName: "text.cursor")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(colors.accent)
-
-                        TextField("Vacation in Italy", text: $name)
-                            .font(typography.body)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: spacing.s) {
+                    suggestionChip(title: "Emergency fund") {
+                        name = "Emergency fund"
+                        category = .emergency
                     }
-                    .padding(.horizontal, spacing.m)
-                    .padding(.vertical, spacing.s)
-                    .background(
-                        RoundedRectangle(cornerRadius: cornerRadius.m, style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [colors.background, colors.card],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius.m, style: .continuous)
-                            .stroke(colors.subtleBorder.opacity(0.9), lineWidth: 1)
-                    )
-
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: spacing.s) {
-                            suggestionChip(title: "Emergency fund") {
-                                name = "Emergency fund"
-                                category = .emergency
-                            }
-                            suggestionChip(title: "Vacation") {
-                                name = "Vacation"
-                                category = .travel
-                            }
-                            suggestionChip(title: "New laptop") {
-                                name = "New laptop"
-                                category = .lifestyle
-                            }
-                        }
-                        .padding(.top, spacing.s)
-                        .padding(.horizontal, spacing.xs)
+                    suggestionChip(title: "Vacation") {
+                        name = "Vacation"
+                        category = .travel
+                    }
+                    suggestionChip(title: "New laptop") {
+                        name = "New laptop"
+                        category = .lifestyle
                     }
                 }
-
-                VStack(alignment: .leading, spacing: spacing.xs) {
-                    Text("Target amount")
-                        .font(typography.caption)
-                        .foregroundStyle(colors.textSecondary)
-
-                    HStack {
-                        Image(systemName: "chart.line.uptrend.xyaxis")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(colors.primary)
-
-                        TextField("0.00", text: $targetAmountText)
-                            .keyboardType(.decimalPad)
-                            .font(typography.body)
-                    }
-                    .padding(.horizontal, spacing.m)
-                    .padding(.vertical, spacing.s)
-                    .background(
-                        RoundedRectangle(cornerRadius: cornerRadius.m, style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [colors.background, colors.card],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius.m, style: .continuous)
-                            .stroke(colors.subtleBorder.opacity(0.9), lineWidth: 1)
-                    )
-
-                    HStack(spacing: spacing.s) {
-                        quickAmountChip(amount: 500)
-                        quickAmountChip(amount: 1000)
-                        quickAmountChip(amount: 2000)
-                    }
-                    .padding(.top, spacing.s)
-                }
-
-                VStack(alignment: .leading, spacing: spacing.xs) {
-                    Text("Starting amount")
-                        .font(typography.caption)
-                        .foregroundStyle(colors.textSecondary)
-
-                    HStack {
-                        Image(systemName: "arrow.down.left.circle")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(colors.secondary)
-
-                        TextField("Optional", text: $initialAmountText)
-                            .keyboardType(.decimalPad)
-                            .font(typography.body)
-                    }
-                    .padding(.horizontal, spacing.m)
-                    .padding(.vertical, spacing.s)
-                    .background(
-                        RoundedRectangle(cornerRadius: cornerRadius.m, style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [colors.background, colors.card],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius.m, style: .continuous)
-                            .stroke(colors.subtleBorder.opacity(0.9), lineWidth: 1)
-                    )
-                }
-
-                VStack(alignment: .leading, spacing: spacing.xs) {
-                    Text("Currency")
-                        .font(typography.caption)
-                        .foregroundStyle(colors.textSecondary)
-
-                    currencySegment
-                }
+                .padding(.vertical, spacing.xs)
             }
         }
-        .padding(spacing.m)
-        .background(
-            RoundedRectangle(cornerRadius: cornerRadius.l, style: .continuous)
-                .fill(colors.card)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: cornerRadius.l, style: .continuous)
-                .stroke(colors.subtleBorder, lineWidth: 1)
-        )
     }
 
-    private var categoryCard: some View {
-        VStack(alignment: .leading, spacing: spacing.m) {
+    private var targetAmountSection: some View {
+        VStack(alignment: .leading, spacing: spacing.s) {
+            Text("Target amount")
+                .font(typography.caption)
+                .foregroundStyle(colors.textSecondary)
+
+            HStack(spacing: spacing.s) {
+                TextField("0.00", text: $targetAmountText)
+                    .keyboardType(.decimalPad)
+                    .font(typography.title)
+                    .foregroundStyle(colors.textPrimary)
+                    .onChange(of: targetAmountText, initial: false) { _, newValue in
+                        let filtered = Self.sanitizeDecimalInput(newValue)
+                        if filtered != newValue {
+                            targetAmountText = filtered
+                        }
+                    }
+
+                Spacer(minLength: spacing.s)
+
+                HStack(spacing: 0) {
+                    currencyChip(for: .usd)
+                    currencyChip(for: .eur)
+                }
+            }
+            .padding(.horizontal, spacing.m)
+            .padding(.vertical, spacing.m)
+            .background(
+                RoundedRectangle(cornerRadius: cornerRadius.l, style: .continuous)
+                    .fill(colors.card)
+            )
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: spacing.s) {
+                    quickAmountChip(amount: 500)
+                    quickAmountChip(amount: 1000)
+                    quickAmountChip(amount: 2000)
+                }
+                .padding(.vertical, spacing.xs)
+            }
+        }
+    }
+
+    private var startingAmountSection: some View {
+        VStack(alignment: .leading, spacing: spacing.s) {
+            Text("Starting amount")
+                .font(typography.caption)
+                .foregroundStyle(colors.textSecondary)
+
+            HStack(spacing: spacing.s) {
+                ZStack {
+                    Circle()
+                        .fill(colors.secondary.opacity(0.18))
+                        .frame(width: 28, height: 28)
+
+                    Image(systemName: "arrow.down.left.circle.fill")
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .foregroundStyle(colors.secondary)
+                }
+
+                TextField("Optional", text: $initialAmountText)
+                    .keyboardType(.decimalPad)
+                    .font(typography.body)
+                    .foregroundStyle(colors.textPrimary)
+                    .onChange(of: initialAmountText, initial: false) { _, newValue in
+                        let filtered = Self.sanitizeDecimalInput(newValue)
+                        if filtered != newValue {
+                            initialAmountText = filtered
+                        }
+                    }
+            }
+            .padding(.horizontal, spacing.m)
+            .padding(.vertical, spacing.m)
+            .background(
+                RoundedRectangle(cornerRadius: cornerRadius.l, style: .continuous)
+                    .fill(colors.card)
+            )
+        }
+    }
+
+    private var categorySection: some View {
+        VStack(alignment: .leading, spacing: spacing.s) {
             Text("Category")
-                .font(typography.subtitle)
-                .foregroundStyle(colors.textPrimary)
+                .font(typography.caption)
+                .foregroundStyle(colors.textSecondary)
 
             CategorySelectorView(
                 categories: GoalCategory.allCases,
@@ -262,57 +226,69 @@ struct AddGoalView: View {
                 }
             )
         }
-        .padding(spacing.m)
-        .background(
-            RoundedRectangle(cornerRadius: cornerRadius.l, style: .continuous)
-                .fill(colors.card)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: cornerRadius.l, style: .continuous)
-                .stroke(colors.subtleBorder, lineWidth: 1)
-        )
     }
 
-    private var timelineCard: some View {
-        VStack(alignment: .leading, spacing: spacing.m) {
-            Text("Timeline")
-                .font(typography.subtitle)
-                .foregroundStyle(colors.textPrimary)
+    private var timelineSection: some View {
+        VStack(alignment: .leading, spacing: spacing.s) {
+            Text("Target date")
+                .font(typography.caption)
+                .foregroundStyle(colors.textSecondary)
 
-            Toggle("Set target date", isOn: $hasDueDate.animation())
+            VStack(alignment: .leading, spacing: spacing.m) {
+                Toggle("Set target date", isOn: $hasDueDate.animation())
 
-            if hasDueDate {
-                DatePicker(
-                    "Estimated completion",
-                    selection: $dueDate,
-                    displayedComponents: .date
-                )
-                .datePickerStyle(.compact)
+                if hasDueDate {
+                    HStack(spacing: spacing.s) {
+                        ZStack {
+                            Circle()
+                                .fill(colors.accent.opacity(0.18))
+                                .frame(width: 28, height: 28)
+
+                            Image(systemName: "calendar")
+                                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                                .foregroundStyle(colors.accent)
+                        }
+
+                        DatePicker(
+                            "Estimated completion",
+                            selection: $dueDate,
+                            displayedComponents: .date
+                        )
+                        .labelsHidden()
+                        .datePickerStyle(.compact)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
             }
+            .padding(.horizontal, spacing.m)
+            .padding(.vertical, spacing.m)
+            .background(
+                RoundedRectangle(cornerRadius: cornerRadius.l, style: .continuous)
+                    .fill(colors.card)
+            )
         }
-        .padding(spacing.m)
-        .background(
-            RoundedRectangle(cornerRadius: cornerRadius.l, style: .continuous)
-                .fill(colors.card)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: cornerRadius.l, style: .continuous)
-                .stroke(colors.subtleBorder, lineWidth: 1)
-        )
     }
 
     private var bottomBar: some View {
-        PrimaryButton(title: "Save goal", action: save)
-            .opacity(isSaveDisabled ? 0.5 : 1)
-            .disabled(isSaveDisabled)
-            .padding(.horizontal, spacing.l)
-            .padding(.top, spacing.m)
-            .padding(.bottom, spacing.l)
-            .background(
-                Rectangle()
-                    .fill(colors.background.opacity(0.98))
-                    .shadow(color: .black.opacity(0.08), radius: 12, x: 0, y: -4)
-            )
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(colors.subtleBorder.opacity(0.55))
+                .frame(height: 1)
+                .frame(maxWidth: .infinity)
+
+            PrimaryButton(title: "Save", action: save)
+                .opacity(canSave ? 1 : 0.5)
+                .disabled(!canSave)
+                .padding(.horizontal, spacing.l)
+                .padding(.top, spacing.m)
+                .padding(.bottom, spacing.l)
+        }
+        .frame(maxWidth: .infinity)
+        .background {
+            colors.background
+                .ignoresSafeArea(edges: .bottom)
+                .shadow(color: .black.opacity(0.12), radius: 10, x: 0, y: -6)
+        }
     }
 
     private func suggestionChip(title: String, action: @escaping () -> Void) -> some View {
@@ -334,9 +310,29 @@ struct AddGoalView: View {
         .buttonStyle(.plain)
     }
 
+    private func currencyChip(for value: Transaction.Currency) -> some View {
+        let isSelected = selectedCurrency == value
+
+        return Button {
+            guard !isSelected else { return }
+            selectedCurrency = value
+        } label: {
+            Text(value.rawValue)
+                .font(typography.caption.weight(.medium))
+                .frame(width: 52)
+                .padding(.vertical, spacing.xs)
+                .background(
+                    RoundedRectangle(cornerRadius: cornerRadius.s, style: .continuous)
+                        .fill(isSelected ? colors.accent : colors.controlInactiveFill)
+                )
+                .foregroundStyle(isSelected ? colors.onAccent : colors.textPrimary)
+        }
+        .buttonStyle(.plain)
+    }
+
     private func quickAmountChip(amount: Int) -> some View {
         let amountDecimal = Decimal(amount)
-        let text = amountDecimal.appCurrencyString(code: currency.rawValue)
+        let text = amountDecimal.appCurrencyString(code: selectedCurrency.rawValue)
 
         return Button {
             targetAmountText = "\(amount)"
@@ -356,44 +352,6 @@ struct AddGoalView: View {
                 )
         }
         .buttonStyle(.plain)
-    }
-
-    private var currencySegment: some View {
-        let options: [Transaction.Currency] = [.usd, .eur]
-
-        return ZStack {
-            RoundedRectangle(cornerRadius: cornerRadius.m, style: .continuous)
-                .fill(colors.background)
-
-            HStack(spacing: 0) {
-                ForEach(options, id: \.self) { option in
-                    let isSelected = option == currency
-
-                    Button {
-                        guard !isSelected else { return }
-                        withAnimation(.spring(response: 0.25, dampingFraction: 0.9)) {
-                            currency = option
-                        }
-                    } label: {
-                        Text(option.rawValue)
-                            .font(typography.caption.weight(.medium))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, spacing.s)
-                            .background(
-                                RoundedRectangle(cornerRadius: cornerRadius.m - 2, style: .continuous)
-                                    .fill(
-                                        isSelected
-                                        ? colors.accent
-                                        : Color.clear
-                                    )
-                            )
-                            .foregroundStyle(isSelected ? Color.white : colors.textPrimary)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(2)
-        }
     }
 
     private func categoryIconName(for category: GoalCategory) -> String {
@@ -417,9 +375,23 @@ struct AddGoalView: View {
         case .other: return colors.textSecondary
         }
     }
+
+    private static func sanitizeDecimalInput(_ raw: String) -> String {
+        let allowed = "0123456789.,"
+        var filtered = raw.filter { allowed.contains($0) }
+
+        let separators: [Character] = [".", ","]
+        for separator in separators {
+            let parts = filtered.split(separator: separator, omittingEmptySubsequences: false)
+            if parts.count > 2 {
+                filtered = parts.prefix(2).joined(separator: String(separator))
+            }
+        }
+
+        return filtered
+    }
 }
 
 #Preview {
-    AddGoalView { _, _, _, _, _, _ in }
+    AddGoalView(initialCurrency: .usd) { _, _, _, _, _, _ in }
 }
-

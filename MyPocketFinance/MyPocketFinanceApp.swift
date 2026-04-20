@@ -1,10 +1,20 @@
-
 import SwiftUI
+#if os(iOS)
+import UIKit
+#endif
 
 @main
 struct MyPocketFinanceApp: App {
     @StateObject private var themeManager = ThemeManager()
-    @Environment(\.colorScheme) private var systemColorScheme
+
+    init() {
+        #if os(iOS)
+        UIWindow.appearance().backgroundColor = ThemeManager.launchWindowBackgroundUIColor()
+        #endif
+        Task {
+            try? await FrankfurterRates.fetchUSDToEURRow()
+        }
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -14,12 +24,6 @@ struct MyPocketFinanceApp: App {
                 .environment(\.appTypography, themeManager.typography)
                 .environment(\.appSpacing, themeManager.spacing)
                 .environment(\.appCornerRadius, themeManager.cornerRadius)
-                .onAppear {
-                    themeManager.updateSystemColorScheme(systemColorScheme)
-                }
-                .onChange(of: systemColorScheme) { _, newValue in
-                    themeManager.updateSystemColorScheme(newValue)
-                }
                 .preferredColorScheme(themeManager.preferredColorScheme)
         }
     }

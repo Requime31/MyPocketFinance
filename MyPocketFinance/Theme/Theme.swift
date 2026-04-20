@@ -1,5 +1,8 @@
 import SwiftUI
 import Combine
+#if os(iOS)
+import UIKit
+#endif
 
 
 struct AppColors {
@@ -16,6 +19,13 @@ struct AppColors {
     let textPrimary: Color
     let textSecondary: Color
     let subtleBorder: Color
+    
+    let onHero: Color
+    let onHeroSecondary: Color
+    let onHeroSubtleStroke: Color
+    let onHeroSubtleFill: Color
+    let onAccent: Color
+    let controlInactiveFill: Color
 
     let primaryGradientColors: [Color]
     let accentGradientColors: [Color]
@@ -33,6 +43,12 @@ extension AppColors {
         textPrimary: Color(red: 0.07, green: 0.09, blue: 0.16),
         textSecondary: Color(red: 0.39, green: 0.43, blue: 0.55),
         subtleBorder: Color.black.opacity(0.06),
+        onHero: Color.white,
+        onHeroSecondary: Color.white.opacity(0.9),
+        onHeroSubtleStroke: Color.white.opacity(0.12),
+        onHeroSubtleFill: Color.white.opacity(0.16),
+        onAccent: Color.white,
+        controlInactiveFill: Color(red: 0.96, green: 0.97, blue: 1.00),
         primaryGradientColors: [
             Color(red: 0.30, green: 0.63, blue: 0.83),
             Color(red: 0.39, green: 0.40, blue: 0.74)
@@ -54,6 +70,12 @@ extension AppColors {
         textPrimary: Color(red: 0.93, green: 0.95, blue: 1.00),
         textSecondary: Color(red: 0.68, green: 0.72, blue: 0.86),
         subtleBorder: Color.white.opacity(0.03),
+        onHero: Color.white,
+        onHeroSecondary: Color.white.opacity(0.9),
+        onHeroSubtleStroke: Color.white.opacity(0.12),
+        onHeroSubtleFill: Color.white.opacity(0.16),
+        onAccent: Color.white,
+        controlInactiveFill: Color.white.opacity(0.10),
         primaryGradientColors: [
             Color(red: 0.22, green: 0.32, blue: 0.56),
             Color(red: 0.30, green: 0.42, blue: 0.68)
@@ -120,16 +142,33 @@ enum AppThemeMode: String, CaseIterable {
 
 final class ThemeManager: ObservableObject {
     @Published private(set) var mode: AppThemeMode
-    @Published private var systemColorScheme: ColorScheme = .light
-    
+    @Published private var systemColorScheme: ColorScheme
+
     private let settingsService: UserSettingsService
-    
+
     init(settingsService: UserSettingsService = UserDefaultsSettingsService()) {
         self.settingsService = settingsService
-        
+
         let storedSettings = settingsService.load()
         let storedMode = AppThemeMode(rawValue: storedSettings.preferredTheme) ?? .system
         self.mode = storedMode
+        self.systemColorScheme = Self.systemColorSchemeFromCurrentTraits()
+    }
+
+    /// `UITraitCollection` matches the launch window more reliably than `Environment(\.colorScheme)` on `App`.
+    private static func systemColorSchemeFromCurrentTraits() -> ColorScheme {
+        #if os(iOS)
+        switch UITraitCollection.current.userInterfaceStyle {
+        case .dark:
+            return .dark
+        case .light, .unspecified:
+            fallthrough
+        @unknown default:
+            return .light
+        }
+        #else
+        return .light
+        #endif
     }
     
     
@@ -184,6 +223,29 @@ final class ThemeManager: ObservableObject {
             return nil
         }
     }
+
+    /// Same palette resolution as ``colors`` for freshly loaded settings (used before the first SwiftUI frame).
+    static func resolvedColorsMatchingStoredPreferences() -> AppColors {
+        let storedSettings = UserDefaultsSettingsService().load()
+        let storedMode = AppThemeMode(rawValue: storedSettings.preferredTheme) ?? .system
+        let systemColorScheme = systemColorSchemeFromCurrentTraits()
+        let useDarkPalette: Bool
+        switch storedMode {
+        case .light:
+            useDarkPalette = false
+        case .dark:
+            useDarkPalette = true
+        case .system:
+            useDarkPalette = (systemColorScheme == .dark)
+        }
+        return useDarkPalette ? .dark : .light
+    }
+
+    #if os(iOS)
+    static func launchWindowBackgroundUIColor() -> UIColor {
+        UIColor(resolvedColorsMatchingStoredPreferences().background)
+    }
+    #endif
 }
 
 

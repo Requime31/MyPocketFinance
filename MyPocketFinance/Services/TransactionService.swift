@@ -1,4 +1,5 @@
 import Foundation
+import os.log
 
 protocol TransactionService {
     func fetchTransactions() -> [Transaction]
@@ -9,6 +10,11 @@ protocol TransactionService {
 
 final class InMemoryTransactionService: TransactionService {
     static let shared = InMemoryTransactionService()
+
+    private static let log = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "MyPocketFinance",
+        category: "Transactions"
+    )
 
     private let storageKey = "transactions_storage_key"
     private let defaults: UserDefaults
@@ -55,6 +61,7 @@ final class InMemoryTransactionService: TransactionService {
             let data = try encoder.encode(storage)
             defaults.set(data, forKey: storageKey)
         } catch {
+            Self.log.error("Failed to encode transactions: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -67,6 +74,7 @@ final class InMemoryTransactionService: TransactionService {
             let decoder = JSONDecoder()
             return try decoder.decode([Transaction].self, from: data)
         } catch {
+            Self.log.error("Failed to decode transactions: \(error.localizedDescription, privacy: .public)")
             return []
         }
     }
